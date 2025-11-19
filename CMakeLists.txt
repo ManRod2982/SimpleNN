@@ -7,6 +7,7 @@ target_sources(simple_nn
     PRIVATE
     src/main.cc
     src/simple_nn.cc
+    src/mnist_reader.cc
 )
 
 find_package(Catch2 REQUIRED)

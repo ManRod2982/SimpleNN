@@ -27,11 +27,11 @@ SOFTWARE.
 
 // Empty SimpleNN class declaration
 class SimpleNN {
-public:
-    SimpleNN() = default;
-    ~SimpleNN() = default;
+ public:
+  SimpleNN() = default;
+  ~SimpleNN() = default;
 
-    // Add neural network APIs here
+  // Add neural network APIs here
 };
 
-#endif // SIMPLE_NN_HH
+#endif  // SIMPLE_NN_HH

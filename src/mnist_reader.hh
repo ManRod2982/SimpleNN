@@ -21,23 +21,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#ifndef MNIST_READER_HH
+#define MNIST_READER_HH
 
-#include <iostream>
+#include <string>
+#include <tuple>
+#include <vector>
 
-#include "mnist_reader.hh"
-#include "simple_nn.hh"
-
-int main() {
-  // Read MNIST data and create a SimpleNN instance
-  auto res = mnist_reader("data/train-images.idx3-ubyte",
-                          "data/train-labels.idx1-ubyte");
-
-  std::cout << std::get<0>(res).size() << std::endl;
-  std::cout << std::get<0>(res)[0].size() << std::endl;
-  std::cout << static_cast<int>(std::get<1>(res)[0]) << std::endl;
-  std::cout << std::get<1>(res).size() << std::endl;
-  SimpleNN nn;
-  (void)nn;  // silence unused variable warnings
-  std::cout << "SimpleNN instance created\n";
-  return 0;
-}
+std::tuple<std::vector<std::vector<uint8_t>>, std::vector<uint8_t>>
+mnist_reader(const std::string &images_path, const std::string &labels_path);
+#endif  // MNIST_READER_HH
