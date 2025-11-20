@@ -25,9 +25,13 @@ SOFTWARE.
 #define MNIST_READER_HH
 
 #include <string>
-#include <tuple>
 #include <vector>
 
-std::tuple<std::vector<std::vector<uint8_t>>, std::vector<uint8_t>>
-mnist_reader(const std::string &images_path, const std::string &labels_path);
+struct MnistData {
+  std::vector<std::vector<uint8_t>> images;
+  std::vector<uint8_t> labels;
+};
+
+MnistData mnist_reader(const std::string &images_path,
+                       const std::string &labels_path);
 #endif  // MNIST_READER_HH

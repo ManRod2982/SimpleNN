@@ -32,10 +32,10 @@ int main() {
   auto res = mnist_reader("data/train-images.idx3-ubyte",
                           "data/train-labels.idx1-ubyte");
 
-  std::cout << std::get<0>(res).size() << std::endl;
-  std::cout << std::get<0>(res)[0].size() << std::endl;
-  std::cout << static_cast<int>(std::get<1>(res)[0]) << std::endl;
-  std::cout << std::get<1>(res).size() << std::endl;
+  std::cout << res.images.size() << std::endl;
+  std::cout << res.images[0].size() << std::endl;
+  std::cout << static_cast<int>(res.labels[0]) << std::endl;
+  std::cout << res.labels.size() << std::endl;
   SimpleNN nn;
   (void)nn;  // silence unused variable warnings
   std::cout << "SimpleNN instance created\n";

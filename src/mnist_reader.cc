@@ -86,7 +86,8 @@ std::vector<std::vector<uint8_t>> parse_images(const std::string &images_path) {
       // Example if the image was 3x2 that's how the pixels would be in a
       // vector [p00 p01 p10 p11 p20 p21] [ 0   1   2   3   4   5]
       std::vector<uint8_t> image(num_rows * num_cols);
-      file.read(reinterpret_cast<char *>(image.data()), image.size() * sizeof(uint8_t));
+      file.read(reinterpret_cast<char *>(image.data()),
+                image.size() * sizeof(uint8_t));
 
       images[i] = image;
     }
@@ -144,10 +145,12 @@ std::vector<uint8_t> parse_labels(const std::string &labels_path) {
 // Implementation for MNISTReader
 // It returns a matrix with images and a corresponding vector with labels
 // it requires the images path and the labels path
-std::tuple<std::vector<std::vector<uint8_t>>, std::vector<uint8_t>>
-mnist_reader(const std::string &images_path, const std::string &labels_path) {
-  auto images = parse_images(images_path);
-  auto labels = parse_labels(labels_path);
+MnistData mnist_reader(const std::string &images_path,
+                       const std::string &labels_path) {
+  MnistData mnist_data;
 
-  return std::make_tuple(images, labels);
+  mnist_data.images = parse_images(images_path);
+  mnist_data.labels = parse_labels(labels_path);
+
+  return mnist_data;
 }
