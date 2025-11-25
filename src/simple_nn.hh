@@ -24,14 +24,39 @@ SOFTWARE.
 
 #ifndef SIMPLE_NN_HH
 #define SIMPLE_NN_HH
+#include <vector>
+#include <eigen3/Eigen/Dense>
 
 // Empty SimpleNN class declaration
 class SimpleNN {
  public:
-  SimpleNN() = default;
+  // Ctor of SimpleNN that expects a vector containing the
+  // architecture of the Neural Network, each entry in the vector
+  // corresponds to a layer for instance
+  // [80 30 10]
+  // would be a NN with 80 neurons in the input layer
+  // 30 neurons in the hidden layer
+  // 10 neurons in the output layer
+  SimpleNN(std::vector<int> arch);
   ~SimpleNN() = default;
 
+  // Method used to trigger the training of the neural network
+  //void train(training_data, labels);
+
+  // Method used to trigger the prediction
+  // it returns the output layer
+  //std::vector<double> predict();
+
   // Add neural network APIs here
+ private:
+  // Method used for Forward propagation
+  Eigen::MatrixXd forward_propagation(Eigen::VectorXd input);
+  // Activation function
+  Eigen::MatrixXd activation_func(Eigen::MatrixXd activation);
+  // Weights of the Neural Network
+  std::vector<Eigen::MatrixXd> weights;
+  // Biases of the Neural Network
+  std::vector<Eigen::VectorXd> bias;
 };
 
 #endif  // SIMPLE_NN_HH

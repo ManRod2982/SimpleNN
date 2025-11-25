@@ -30,7 +30,8 @@ SOFTWARE.
 
 // Tests for SimpleNN class
 TEST_CASE("SimpleNN basic functionality", "[simple_nn]") {
-  SimpleNN nn;
+  std::vector<int> arch;
+  SimpleNN nn(arch);
   (void)nn;       // silence unused variable warnings
   REQUIRE(true);  // Placeholder test
 }

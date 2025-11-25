@@ -36,7 +36,11 @@ int main() {
   std::cout << res.images[0].size() << std::endl;
   std::cout << static_cast<int>(res.labels[0]) << std::endl;
   std::cout << res.labels.size() << std::endl;
-  SimpleNN nn;
+  // Initialize Neural Network with
+  // 784 Input layer (image is 28*28 = 784)
+  // 30 Hidden layer
+  // 10 Ouput layer
+  SimpleNN nn({784, 30, 10});
   (void)nn;  // silence unused variable warnings
   std::cout << "SimpleNN instance created\n";
   return 0;

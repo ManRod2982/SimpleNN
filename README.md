@@ -23,6 +23,7 @@ This code uses Catch2 for testing as well as Cmake:
 ```
 sudo apt install cmake
 sudo apt install catch2
+sudo apt-get install libeigen3-dev
 ```
 
 To get the training, validation and testing data:
@@ -44,3 +45,9 @@ Pixels are organized row-wise. Pixel values are 0 to 255. 0 means background (wh
 Data was obtained [here](https://www.kaggle.com/datasets/hojjatk/mnist-dataset) and copied into `data` folder
 
 And MNIST parser was created to read the data from binary into C++ std::vectors.
+
+## References
+
+Useful resources used in understanding and creating this:
+- [Michael Nielsen's book on neural networks](http://neuralnetworksanddeeplearning.com/index.html)
+- [3Blue1Brown Series on Neural Networks](https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi)
