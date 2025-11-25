@@ -29,9 +29,12 @@ SOFTWARE.
 #include "../src/simple_nn.hh"
 
 // Tests for SimpleNN class
-TEST_CASE("SimpleNN basic functionality", "[simple_nn]") {
+TEST_CASE("SimpleNN check ctor", "[simple_nn]") {
   std::vector<int> arch;
-  SimpleNN nn(arch);
-  (void)nn;       // silence unused variable warnings
-  REQUIRE(true);  // Placeholder test
+  // Constructing with an empty architecture should throw
+  REQUIRE_THROWS_AS(SimpleNN(arch), std::runtime_error);
+  arch.push_back(1);
+  REQUIRE_THROWS_AS(SimpleNN(arch), std::runtime_error);
+  arch.push_back(2);
+  REQUIRE_NOTHROW(SimpleNN(arch));
 }
