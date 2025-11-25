@@ -24,12 +24,14 @@ SOFTWARE.
 #ifndef MNIST_READER_HH
 #define MNIST_READER_HH
 
+#include "eigen3/Eigen/Dense"
+
 #include <string>
 #include <vector>
 
 struct MnistData {
-  std::vector<std::vector<uint8_t>> images;
-  std::vector<uint8_t> labels;
+  std::vector<Eigen::VectorXd> images;
+  std::vector<Eigen::VectorXd> labels;
 };
 
 MnistData mnist_reader(const std::string &images_path,

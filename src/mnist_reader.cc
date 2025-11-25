@@ -30,6 +30,9 @@ SOFTWARE.
 constexpr uint32_t mnist_images_hdr = 0x00000803;
 constexpr uint32_t mnist_labels_hdr = 0x00000801;
 
+// Variable used to scale the inputs to 0-1
+constexpr double scale_factor = 255;
+
 // Helper function to switch the endinaness
 uint32_t swap_endian(uint32_t val) {
   return (val << 24) | ((val << 8) & 0x00FF0000) | ((val >> 8) & 0x0000FF00) |
@@ -40,7 +43,7 @@ uint32_t swap_endian(uint32_t val) {
 // it vectorizes the image into a single vector and returns as many images, for
 // instance if there are 50 images of 2x2 it returns a vector of vectors
 // containing 50x4x1
-std::vector<std::vector<uint8_t>> parse_images(const std::string &images_path) {
+std::vector<Eigen::VectorXd> parse_images(const std::string &images_path) {
   // Implementation for parsing MNIST images
   std::cout << "Parsing images from: " << images_path << std::endl;
   try {
@@ -71,8 +74,7 @@ std::vector<std::vector<uint8_t>> parse_images(const std::string &images_path) {
     std::cout << "Image Size: " << num_rows << "x" << num_cols << std::endl;
 
     // Read image data
-    std::vector<std::vector<uint8_t>> images(
-        num_images, std::vector<uint8_t>(num_rows * num_cols, 0));
+    std::vector<Eigen::VectorXd> images;
     for (uint32_t i = 0; i < num_images; ++i) {
       // Pixels are organized row wise
       // | 0 1 2 |
@@ -85,11 +87,17 @@ std::vector<std::vector<uint8_t>> parse_images(const std::string &images_path) {
       // | p20 p21 |
       // Example if the image was 3x2 that's how the pixels would be in a
       // vector [p00 p01 p10 p11 p20 p21] [ 0   1   2   3   4   5]
-      std::vector<uint8_t> image(num_rows * num_cols);
-      file.read(reinterpret_cast<char *>(image.data()),
-                image.size() * sizeof(uint8_t));
-
-      images[i] = image;
+      Eigen::VectorXd image(num_rows * num_cols);
+      for(size_t row = 0; row < num_rows; row++)
+      {
+        for(size_t col = 0; col < num_cols; col++)
+        {
+          uint8_t tmp = 0;
+          file.read(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+          image[(row*num_cols)+col] = tmp / scale_factor;
+        }
+      }
+      images.push_back(image);
     }
 
     return images;
@@ -101,8 +109,11 @@ std::vector<std::vector<uint8_t>> parse_images(const std::string &images_path) {
   return {{}};
 }
 
-// Function used to parse label data into a vector
-std::vector<uint8_t> parse_labels(const std::string &labels_path) {
+// Function used to parse label data into an Eigen vector ready for training
+// If the label is 2, it sets the third index to 1 and the rest is 0
+// [0 1 2 3 4 5 6 7 8 9]
+// [0 0 1 0 0 0 0 0 0 0]
+std::vector<Eigen::VectorXd> parse_labels(const std::string &labels_path) {
   // Implementation for parsing MNIST labels
   std::cout << "Parsing labels from: " << labels_path << std::endl;
   try {
@@ -128,10 +139,14 @@ std::vector<uint8_t> parse_labels(const std::string &labels_path) {
     labels_num = swap_endian(labels_num);
     std::cout << "Number of labels: " << labels_num << std::endl;
 
-    // Get all labels and store them in a vector TODO change to an eigen type
-    std::vector<uint8_t> labels = std::vector<uint8_t>(labels_num, 10);
+    // Get all labels and store them in a vector
+    std::vector<Eigen::VectorXd> labels;
     for (size_t i = 0; i < labels_num; i++) {
-      file.read(reinterpret_cast<char *>(&(labels[i])), sizeof(labels[i]));
+      char tmp;
+      file.read(&tmp, sizeof(tmp));
+      Eigen::VectorXd label = Eigen::VectorXd::Zero(10);
+      label(tmp) = 1;
+      labels.push_back(label);
     }
 
     return labels;

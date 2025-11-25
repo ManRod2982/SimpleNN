@@ -43,14 +43,12 @@ class SimpleNN {
   // Method used to trigger the training of the neural network
   //void train(training_data, labels);
 
-  // Method used to trigger the prediction
-  // it returns the output layer
-  //std::vector<double> predict();
+  // Method used for Forward propagation
+  // it returns the result of the output layer
+  Eigen::MatrixXd forward_propagation(Eigen::VectorXd input);
 
   // Add neural network APIs here
  private:
-  // Method used for Forward propagation
-  Eigen::MatrixXd forward_propagation(Eigen::VectorXd input);
   // Activation function
   Eigen::MatrixXd activation_func(Eigen::MatrixXd activation);
   // Weights of the Neural Network

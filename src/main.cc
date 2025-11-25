@@ -29,19 +29,18 @@ SOFTWARE.
 
 int main() {
   // Read MNIST data and create a SimpleNN instance
-  auto res = mnist_reader("data/train-images.idx3-ubyte",
+  auto data = mnist_reader("data/train-images.idx3-ubyte",
                           "data/train-labels.idx1-ubyte");
-
-  std::cout << res.images.size() << std::endl;
-  std::cout << res.images[0].size() << std::endl;
-  std::cout << static_cast<int>(res.labels[0]) << std::endl;
-  std::cout << res.labels.size() << std::endl;
   // Initialize Neural Network with
   // 784 Input layer (image is 28*28 = 784)
   // 30 Hidden layer
   // 10 Ouput layer
+  std::cout << "Creating SimpleNN\n" << std::endl;
   SimpleNN nn({784, 30, 10});
-  (void)nn;  // silence unused variable warnings
-  std::cout << "SimpleNN instance created\n";
+  auto result = nn.forward_propagation(data.images[0]);
+  std::cout << "Result: " << std::endl;
+  std::cout << result << std::endl;
+  std::cout << "Target: " << std::endl;
+  std::cout << data.labels[0] << std::endl;
   return 0;
 }
