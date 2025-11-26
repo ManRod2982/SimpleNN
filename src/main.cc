@@ -30,7 +30,7 @@ SOFTWARE.
 int main() {
   // Read MNIST data and create a SimpleNN instance
   auto data = mnist_reader("data/train-images.idx3-ubyte",
-                          "data/train-labels.idx1-ubyte");
+                           "data/train-labels.idx1-ubyte");
   // Initialize Neural Network with
   // 784 Input layer (image is 28*28 = 784)
   // 30 Hidden layer

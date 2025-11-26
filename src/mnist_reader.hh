@@ -24,10 +24,10 @@ SOFTWARE.
 #ifndef MNIST_READER_HH
 #define MNIST_READER_HH
 
-#include "eigen3/Eigen/Dense"
-
 #include <string>
 #include <vector>
+
+#include "eigen3/Eigen/Dense"
 
 struct MnistData {
   std::vector<Eigen::VectorXd> images;

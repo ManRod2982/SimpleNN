@@ -24,10 +24,10 @@ SOFTWARE.
 
 #ifndef SIMPLE_NN_HH
 #define SIMPLE_NN_HH
-#include <vector>
 #include <eigen3/Eigen/Dense>
+#include <vector>
 
-// Empty SimpleNN class declaration
+// Declaration of SimpleNN
 class SimpleNN {
  public:
   // Ctor of SimpleNN that expects a vector containing the
@@ -39,9 +39,21 @@ class SimpleNN {
   // 10 neurons in the output layer
   SimpleNN(std::vector<int> arch);
   ~SimpleNN() = default;
+  // Configuration parameters for training
+  struct training_config {
+    int epochs = 30;  // Number of epochs to be trained, default value of 30
+    double learning_rate =
+        3.0;              // Learning rate to be used, default value of 3.0
+    int mini_batch = 10;  // Mini-batch size to be used, default value of 10
+  };
 
   // Method used to trigger the training of the neural network
-  //void train(training_data, labels);
+  // It takes:
+  // - Vector of vectors containing the training data
+  // - Vector of vectors containing the labels for the training data
+  // - A configuration structure with the hyper-parameters used in the training
+  void train(std::vector<Eigen::VectorXd> training_data,
+             std::vector<Eigen::VectorXd> labels, training_config config);
 
   // Method used for Forward propagation
   // it returns the result of the output layer
