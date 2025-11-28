@@ -76,14 +76,20 @@ Eigen::MatrixXd SimpleNN::activation_func(Eigen::MatrixXd activation) {
 }
 
 void SimpleNN::train(std::vector<Eigen::VectorXd> training_data,
-                     std::vector<Eigen::VectorXd> labels,
-                     SimpleNN::training_config config)
-{
-    // Perform the number of epochs
-    int epoch = config.epochs;
-    while(epoch > 0)
-    {
-        std::cout << "Epoch: " << epoch << std::endl;
-        epoch--;
-    }
+                     std::vector<Eigen::VectorXd> labels) {
+#ifdef DEBUG
+  // Perform data validation before trainig and show the results
+  int res = validate_data(validation_data, validation_labels);
+  std::cout << "Validation pre-training " << res << "/"
+            << validation_data.size() << std::endl;
+#endif
+
+  // Perform the number of epochs
+  int epoch = 0;
+  while (epoch < nn_config.epochs) {
+    // run_mini_batches();
+    // validate_data();
+    std::cout << "Epoch: " << epoch << std::endl;
+    epoch++;
+  }
 }

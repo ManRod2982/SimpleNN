@@ -42,5 +42,6 @@ int main() {
   std::cout << result << std::endl;
   std::cout << "Target: " << std::endl;
   std::cout << data.labels[0] << std::endl;
+  nn.train(data.images, data.labels);
   return 0;
 }

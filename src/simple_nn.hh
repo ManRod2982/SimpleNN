@@ -39,21 +39,24 @@ class SimpleNN {
   // 10 neurons in the output layer
   SimpleNN(std::vector<int> arch);
   ~SimpleNN() = default;
-  // Configuration parameters for training
-  struct training_config {
-    int epochs = 30;  // Number of epochs to be trained, default value of 30
-    double learning_rate =
-        3.0;              // Learning rate to be used, default value of 3.0
-    int mini_batch = 10;  // Mini-batch size to be used, default value of 10
+
+  // Method used to set configuration hyper parameters
+  // it takes:
+  // - Number of epochs to be used
+  // - The learning rate to be used
+  // - The mini batch size to be used
+  void set_config(int epochs, double learning_rate, int mini_batch) {
+    nn_config.epochs = epochs;
+    nn_config.learning_rate = learning_rate;
+    nn_config.mini_batch = mini_batch;
   };
 
   // Method used to trigger the training of the neural network
   // It takes:
   // - Vector of vectors containing the training data
   // - Vector of vectors containing the labels for the training data
-  // - A configuration structure with the hyper-parameters used in the training
   void train(std::vector<Eigen::VectorXd> training_data,
-             std::vector<Eigen::VectorXd> labels, training_config config);
+             std::vector<Eigen::VectorXd> labels);
 
   // Method used for Forward propagation
   // it returns the result of the output layer
@@ -67,6 +70,16 @@ class SimpleNN {
   std::vector<Eigen::MatrixXd> weights;
   // Biases of the Neural Network
   std::vector<Eigen::VectorXd> bias;
+
+  // Configuration parameters for training
+  struct training_config {
+    int epochs = 30;  // Number of epochs to be trained, default value of 30
+    double learning_rate =
+        3.0;              // Learning rate to be used, default value of 3.0
+    int mini_batch = 10;  // Mini-batch size to be used, default value of 10
+  };
+  // Training configuration structure
+  training_config nn_config;
 };
 
 #endif  // SIMPLE_NN_HH
