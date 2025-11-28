@@ -88,14 +88,14 @@ std::vector<Eigen::VectorXd> parse_images(const std::string &images_path) {
       // Example if the image was 3x2 that's how the pixels would be in a
       // vector [p00 p01 p10 p11 p20 p21] [ 0   1   2   3   4   5]
       Eigen::VectorXd image(num_rows * num_cols);
-      for (size_t row = 0; row < num_rows; row++) {
-        for (size_t col = 0; col < num_cols; col++) {
-          uint8_t tmp = 0;
-          file.read(reinterpret_cast<char *>(&tmp), sizeof(tmp));
-          image[(row * num_cols) + col] = tmp / scale_factor;
-        }
-      }
-      images.push_back(image);
+      std::vector<uint8_t> tmp(num_rows*num_cols);
+      // Read the whole memory chunk
+      file.read(reinterpret_cast<char*>(tmp.data()), sizeof(uint8_t)*tmp.size());
+      // Temporary structure to cast from uint8_t to double
+      Eigen::Map<Eigen::Matrix<uint8_t, Eigen::Dynamic, 1>> eigen_map_u8(
+        tmp.data(), tmp.size());
+      image = eigen_map_u8.cast<double>();
+      images.push_back(image/scale_factor);
     }
 
     return images;
