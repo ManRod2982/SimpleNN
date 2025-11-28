@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include "mnist_reader.hh"
 #include "simple_nn.hh"
+#include "image_visualizer.hh"
 
 int main() {
   // Read MNIST data and create a SimpleNN instance
@@ -56,6 +57,12 @@ int main() {
   // validation
   nn.set_config(30, 3.0, 10, 10000);
   auto result = nn.forward_propagation(data.images[0]);
+  #ifdef DEBUG
+  // Visualize the first image to verify it was parsed correctly
+  std::cout << "First training image (28x28 MNIST digit):\n";
+  visualize_image(data.images[0], 28, 2);
+  std::cout << "\n";
+  #endif
   std::cout << "Result: " << std::endl;
   std::cout << result << std::endl;
   std::cout << "Target: " << std::endl;
