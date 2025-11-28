@@ -37,6 +37,24 @@ int main() {
   // 10 Ouput layer
   std::cout << "Creating SimpleNN\n" << std::endl;
   SimpleNN nn({784, 30, 10});
+  // Set function to validate data
+  // Pass lambda
+  nn.set_validation_function(
+      [](Eigen::VectorXd output, Eigen::VectorXd label) -> bool {
+        // Get the index of the maximum element in the result from the NN
+        auto max_it_out = std::max_element(output.begin(), output.end());
+        auto output_number = std::distance(output.begin(), max_it_out);
+
+        // Get the index of the max element in the label, to find the label
+        auto max_it_lab = std::max_element(label.begin(), label.end());
+        auto label_number = std::distance(label.begin(), max_it_lab);
+
+        return label_number == output_number;
+      });
+  // Set training parameters
+  // 30 epochs, 3.0 learning rate, mini batch size of 10 and 10000 images for
+  // validation
+  nn.set_config(30, 3.0, 10, 10000);
   auto result = nn.forward_propagation(data.images[0]);
   std::cout << "Result: " << std::endl;
   std::cout << result << std::endl;

@@ -75,21 +75,56 @@ Eigen::MatrixXd SimpleNN::activation_func(Eigen::MatrixXd activation) {
   return 1 / (1 + ((-activation.array()).exp()));
 }
 
+int SimpleNN::validate_data(std::vector<Eigen::VectorXd> validation_data,
+                            std::vector<Eigen::VectorXd> validation_labels) {
+  // Check that the validation function is valid
+  if (!check_if_valid) {
+    std::cout << "Invalid validation function!" << std::endl;
+    return 0;
+  }
+
+  // Perform data validation
+  int valid = 0;
+  for (size_t i = 0; i < validation_data.size(); i++) {
+    auto sample = validation_data[i];
+    auto label = validation_labels[i];
+    auto output = forward_propagation(sample);
+    valid = check_if_valid(output, label) ? valid++ : valid;
+  }
+
+  std::cout << "Validation " << valid << "/" << validation_data.size()
+            << std::endl;
+  return valid;
+}
+
 void SimpleNN::train(std::vector<Eigen::VectorXd> training_data,
                      std::vector<Eigen::VectorXd> labels) {
+  // Split data into validation set and training
+  std::vector<Eigen::VectorXd> validation_data(
+      training_data.end() - nn_config.validation, training_data.end());
+  std::vector<Eigen::VectorXd> validation_labels(
+      labels.end() - nn_config.validation, labels.end());
+
+  training_data.resize(training_data.size() - nn_config.validation);
+  labels.resize(labels.size() - nn_config.validation);
+
 #ifdef DEBUG
-  // Perform data validation before trainig and show the results
-  int res = validate_data(validation_data, validation_labels);
-  std::cout << "Validation pre-training " << res << "/"
-            << validation_data.size() << std::endl;
+  std::cout << "Validation data size: " << validation_data.size() << std::endl;
+  std::cout << "Validation label size: " << validation_labels.size()
+            << std::endl;
+  std::cout << "Training data size: " << training_data.size() << std::endl;
+  std::cout << "labels size: " << labels.size() << std::endl;
 #endif
+
+  // Perform data validation before trainig
+  (void)validate_data(validation_data, validation_labels);
 
   // Perform the number of epochs
   int epoch = 0;
   while (epoch < nn_config.epochs) {
-    // run_mini_batches();
-    // validate_data();
     std::cout << "Epoch: " << epoch << std::endl;
+    // run_mini_batches();
+    (void)validate_data(validation_data, validation_labels);
     epoch++;
   }
 }

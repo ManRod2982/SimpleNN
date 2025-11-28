@@ -45,10 +45,13 @@ class SimpleNN {
   // - Number of epochs to be used
   // - The learning rate to be used
   // - The mini batch size to be used
-  void set_config(int epochs, double learning_rate, int mini_batch) {
+  // - Size of validation set to be used from the training data set
+  void set_config(int epochs, double learning_rate, int mini_batch,
+                  int validation) {
     nn_config.epochs = epochs;
     nn_config.learning_rate = learning_rate;
     nn_config.mini_batch = mini_batch;
+    nn_config.validation = validation;
   };
 
   // Method used to trigger the training of the neural network
@@ -62,8 +65,21 @@ class SimpleNN {
   // it returns the result of the output layer
   Eigen::MatrixXd forward_propagation(Eigen::VectorXd input);
 
-  // Add neural network APIs here
+  // Set validation data function
+  void set_validation_function(
+      std::function<bool(Eigen::VectorXd, Eigen::VectorXd)> func) {
+    check_if_valid = func;
+  }
+
  private:
+  // Function used to validate the data
+  std::function<bool(Eigen::VectorXd, Eigen::VectorXd)> check_if_valid;
+
+  // Method used to validate the data
+  // a function to validate the data needs to be passed
+  int validate_data(std::vector<Eigen::VectorXd> validation_data,
+                    std::vector<Eigen::VectorXd> validation_labels);
+
   // Activation function
   Eigen::MatrixXd activation_func(Eigen::MatrixXd activation);
   // Weights of the Neural Network
@@ -77,6 +93,8 @@ class SimpleNN {
     double learning_rate =
         3.0;              // Learning rate to be used, default value of 3.0
     int mini_batch = 10;  // Mini-batch size to be used, default value of 10
+    int validation = 0;   // Size of validation data set to be used from the
+                          // training set, default of 0
   };
   // Training configuration structure
   training_config nn_config;
