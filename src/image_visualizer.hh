@@ -25,11 +25,11 @@ SOFTWARE.
 #ifndef IMAGE_VISUALIZER_HH
 #define IMAGE_VISUALIZER_HH
 
-#include <iostream>
+#include <eigen3/Eigen/Dense>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <string>
-#include <eigen3/Eigen/Dense>
 
 /**
  * Visualizes an image represented as an Eigen::VectorXd by printing it
@@ -39,7 +39,8 @@ SOFTWARE.
  * @param width The width (and height) of the square image in pixels
  * @param precision Number of decimal places to print (default: 2)
  */
-inline void visualize_image(const Eigen::VectorXd& image, int width = 28, int precision = 2) {
+inline void visualize_image(const Eigen::VectorXd& image, int width = 28,
+                            int precision = 2) {
   int cols = 0;
 
   for (auto const& pixel : image) {
@@ -47,7 +48,7 @@ inline void visualize_image(const Eigen::VectorXd& image, int width = 28, int pr
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(precision) << pixel;
     std::string pixel_str = oss.str();
-    
+
     // Remove trailing zeros after decimal point
     if (pixel_str.find('.') != std::string::npos) {
       pixel_str.erase(pixel_str.find_last_not_of('0') + 1, std::string::npos);
@@ -56,7 +57,7 @@ inline void visualize_image(const Eigen::VectorXd& image, int width = 28, int pr
         pixel_str.pop_back();
       }
     }
-    
+
     // Print with fixed width (right-aligned) for even alignment
     std::cout << std::setw(3) << pixel_str << " ";
     cols++;
