@@ -24,7 +24,10 @@ SOFTWARE.
 
 #include "simple_nn.hh"
 
+#include <algorithm>
 #include <iostream>
+#include <numeric>
+#include <random>
 
 // Implementation of SimpleNN
 SimpleNN::SimpleNN(std::vector<int> arch) {
@@ -75,6 +78,12 @@ Eigen::MatrixXd SimpleNN::activation_func(Eigen::MatrixXd activation) {
   return 1 / (1 + ((-activation.array()).exp()));
 }
 
+double SimpleNN::activation_func_prime(double x) {
+  // Sigmoid function used
+  auto s = 1.0 / (1.0 + std::exp(-x));
+  return s * (1.0 - s);
+}
+
 int SimpleNN::validate_data(std::vector<Eigen::VectorXd> validation_data,
                             std::vector<Eigen::VectorXd> validation_labels) {
   // Check that the validation function is valid
@@ -89,7 +98,7 @@ int SimpleNN::validate_data(std::vector<Eigen::VectorXd> validation_data,
     auto sample = validation_data[i];
     auto label = validation_labels[i];
     auto output = forward_propagation(sample);
-    valid = check_if_valid(output, label) ? valid++ : valid;
+    valid = check_if_valid(output, label) ? ++valid : valid;
   }
 
   std::cout << "Validation " << valid << "/" << validation_data.size()
@@ -123,8 +132,101 @@ void SimpleNN::train(std::vector<Eigen::VectorXd> training_data,
   int epoch = 0;
   while (epoch < nn_config.epochs) {
     std::cout << "Epoch: " << epoch << std::endl;
-    // run_mini_batches();
+    run_mini_batches(training_data, labels);
     (void)validate_data(validation_data, validation_labels);
     epoch++;
   }
+}
+
+void SimpleNN::run_mini_batches(std::vector<Eigen::VectorXd> training_data,
+                                std::vector<Eigen::VectorXd> labels) {
+  // Create indexes for mini batches
+  std::vector<int> indexes(training_data.size());
+  std::iota(indexes.begin(), indexes.end(), 0);
+
+  // Shuffle training data
+  // Initialize random number generator
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::shuffle(indexes.begin(), indexes.end(), gen);
+
+  // Run over mini-batches updating each time
+  // Index is updated inside the loop
+  for (size_t i = 0; i < indexes.size();) {
+    std::vector<Eigen::MatrixXd> delta_w;
+    std::vector<Eigen::VectorXd> delta_b;
+
+    // Initialize sizes
+    for (size_t layer = 0; layer < this->weights.size(); layer++) {
+      delta_w.push_back(Eigen::MatrixXd::Zero(this->weights[layer].rows(),
+                                              this->weights[layer].cols()));
+      delta_b.push_back(Eigen::VectorXd::Zero(this->bias[layer].rows()));
+    }
+
+    // Train over mini batch size
+    for (size_t mini = 0; mini < nn_config.mini_batch; mini++) {
+      // Check boundary
+      if (i >= indexes.size()) {
+        break;
+      }
+      // Get shuffled index
+      auto index = indexes[i];
+      auto res = backpropagation(training_data[index], labels[index]);
+      // Add new weights and biases for the average
+      for (size_t layer = 0; layer < res.delta_w.size(); layer++) {
+        delta_w[layer] += res.delta_w[layer];
+        delta_b[layer] += res.delta_b[layer];
+      }
+      i++;
+    }
+    // Update weights and biases
+    for (size_t layer = 0; layer < this->weights.size(); layer++) {
+      double eta = nn_config.learning_rate / nn_config.mini_batch;
+      this->weights[layer] -= eta * delta_w[layer];
+      this->bias[layer] -= eta * delta_b[layer];
+    }
+  }
+}
+
+SimpleNN::deltas SimpleNN::backpropagation(Eigen::VectorXd input,
+                                           Eigen::VectorXd output) {
+  // Perform foward pass and save activation and z's
+  std::vector<Eigen::MatrixXd> activations;
+  std::vector<Eigen::MatrixXd> z;
+  // On the last layer the input is basically the 'activation'
+  activations.push_back(input);
+  for (size_t layer = 0; layer < this->weights.size(); layer++) {
+    z.push_back(this->weights[layer] * activations[layer] + this->bias[layer]);
+    activations.push_back(activation_func(z[layer]));
+  }
+
+  // Compute gradients
+  std::vector<Eigen::MatrixXd> delta_w;
+  std::vector<Eigen::VectorXd> delta_b;
+
+  // Perform backward pass
+  // Only the first pass requires the cost function
+  auto last_layer = activations.size() - 1;
+  auto cost = activations[last_layer] - output;
+  auto z_prime = z[last_layer - 1].unaryExpr(
+      [this](double val) { return this->activation_func_prime(val); });
+  Eigen::MatrixXd delta = (z_prime.array() * cost.array()).matrix();
+  auto tmp_w = delta * activations[last_layer - 1].transpose();
+  auto tmp_b = delta;
+  delta_w.push_back(tmp_w);
+  delta_b.push_back(tmp_b);
+
+  for (size_t layer = weights.size() - 1; layer > 0; layer--) {
+    auto z_prime = z[layer - 1].unaryExpr(
+        [this](double val) { return this->activation_func_prime(val); });
+    delta = weights[layer].transpose() * delta;
+    delta = (delta.array() * z_prime.array()).matrix();
+    auto tmp_w = delta * activations[layer - 1].transpose();
+    auto tmp_b = delta;
+
+    // Insert to the front since we are going backwards
+    delta_w.insert(delta_w.begin(), tmp_w);
+    delta_b.insert(delta_b.begin(), tmp_b);
+  }
+  return {delta_w, delta_b};
 }

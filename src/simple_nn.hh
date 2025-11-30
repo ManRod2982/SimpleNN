@@ -80,8 +80,25 @@ class SimpleNN {
   int validate_data(std::vector<Eigen::VectorXd> validation_data,
                     std::vector<Eigen::VectorXd> validation_labels);
 
+  // Methond used to run the mini-batches
+  // it takes the training data and labels
+  void run_mini_batches(std::vector<Eigen::VectorXd> training_data,
+                        std::vector<Eigen::VectorXd> labels);
+
+  struct deltas {
+    std::vector<Eigen::MatrixXd> delta_w;
+    std::vector<Eigen::VectorXd> delta_b;
+  };
+
+  // Method used to perform backpropagation and calculate the gradient
+  // Requires an input and the expected output
+  // Returns a structure with the gradient over weights and biases
+  deltas backpropagation(Eigen::VectorXd input, Eigen::VectorXd output);
+
   // Activation function
   Eigen::MatrixXd activation_func(Eigen::MatrixXd activation);
+  // Derivative of the activation function
+  double activation_func_prime(double x);
   // Weights of the Neural Network
   std::vector<Eigen::MatrixXd> weights;
   // Biases of the Neural Network
