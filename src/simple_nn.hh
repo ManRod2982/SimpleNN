@@ -71,14 +71,14 @@ class SimpleNN {
     check_if_valid = func;
   }
 
- private:
-  // Function used to validate the data
-  std::function<bool(Eigen::VectorXd, Eigen::VectorXd)> check_if_valid;
-
   // Method used to validate the data
   // a function to validate the data needs to be passed
   int validate_data(std::vector<Eigen::VectorXd> validation_data,
                     std::vector<Eigen::VectorXd> validation_labels);
+
+ private:
+  // Function used to validate the data
+  std::function<bool(Eigen::VectorXd, Eigen::VectorXd)> check_if_valid;
 
   // Methond used to run the mini-batches
   // it takes the training data and labels

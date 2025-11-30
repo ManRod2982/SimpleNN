@@ -56,17 +56,22 @@ int main() {
   // 30 epochs, 3.0 learning rate, mini batch size of 10 and 10000 images for
   // validation
   nn.set_config(30, 3.0, 10, 10000);
-  auto result = nn.forward_propagation(data.images[0]);
+
 #ifdef DEBUG
   // Visualize the first image to verify it was parsed correctly
   std::cout << "First training image (28x28 MNIST digit):\n";
   visualize_image(data.images[0], 28, 2);
   std::cout << "\n";
 #endif
+  nn.train(data.images, data.labels);
+  auto result = nn.forward_propagation(data.images[0]);
   std::cout << "Result: " << std::endl;
-  std::cout << result << std::endl;
+  std::cout << std::fixed << std::setprecision(2) << result << std::endl;
   std::cout << "Target: " << std::endl;
   std::cout << data.labels[0] << std::endl;
-  nn.train(data.images, data.labels);
+  // Use against validation data
+  auto validation = mnist_reader("data/t10k-images.idx3-ubyte",
+                                 "data/t10k-labels.idx1-ubyte");
+  auto valid = nn.validate_data(validation.images, validation.labels);
   return 0;
 }
