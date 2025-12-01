@@ -38,6 +38,8 @@ class SimpleNN {
   // 30 neurons in the hidden layer
   // 10 neurons in the output layer
   SimpleNN(std::vector<int> arch);
+  // Ctor of SimpleNN that expects a path to the saved parameters
+  SimpleNN(const std::string &path);
   ~SimpleNN() = default;
 
   // Method used to set configuration hyper parameters
@@ -75,6 +77,14 @@ class SimpleNN {
   // a function to validate the data needs to be passed
   int validate_data(std::vector<Eigen::VectorXd> validation_data,
                     std::vector<Eigen::VectorXd> validation_labels);
+
+  // Method used to save the weights and biases to a file
+  // Takes the path to save the parameters to
+  void save_parameters(const std::string &path);
+
+  // Method used to load saved weights and biases from a file
+  // Takes the path to load the parameters from
+  void load_parameters(const std::string &path);
 
  private:
   // Function used to validate the data
@@ -115,6 +125,8 @@ class SimpleNN {
   };
   // Training configuration structure
   training_config nn_config;
+  // Magic number for parameters data
+  static constexpr uint32_t param_data = 0xDEC1B092;
 };
 
 #endif  // SIMPLE_NN_HH

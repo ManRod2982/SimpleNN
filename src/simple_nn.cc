@@ -25,6 +25,7 @@ SOFTWARE.
 #include "simple_nn.hh"
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <random>
@@ -50,6 +51,21 @@ SimpleNN::SimpleNN(std::vector<int> arch) {
         Eigen::MatrixXd(arch[layer], arch[layer - 1])
             .setRandom());  // Organize weights to make the multiplication
   }
+#ifdef DEBUG
+  for (auto weight : weights) {
+    std::cout << "Weights dimensions: " << weight.rows() << " and "
+              << weight.cols() << std::endl;
+  }
+  for (auto layer_bias : bias) {
+    std::cout << "Bias dimensions: " << layer_bias.rows() << " and "
+              << layer_bias.cols() << std::endl;
+  }
+#endif
+}
+
+SimpleNN::SimpleNN(const std::string& path) {
+  // Load parameters data from file
+  load_parameters(path);
 #ifdef DEBUG
   for (auto weight : weights) {
     std::cout << "Weights dimensions: " << weight.rows() << " and "
@@ -229,4 +245,110 @@ SimpleNN::deltas SimpleNN::backpropagation(Eigen::VectorXd input,
     delta_b.insert(delta_b.begin(), tmp_b);
   }
   return {delta_w, delta_b};
+}
+
+void SimpleNN::save_parameters(const std::string& path) {
+  std::ofstream parameters(path, std::ios_base::out | std::ios_base::binary);
+  if (parameters.is_open()) {
+    // Write Magic number
+    parameters.write(reinterpret_cast<const char*>(&param_data),
+                     sizeof(param_data));
+    // Write the number of layers
+    uint32_t layers = weights.size();
+    parameters.write(reinterpret_cast<const char*>(&layers), sizeof(layers));
+
+    // Go through layers writing weights
+    for (const auto& weight : weights) {
+      // Write rows and cols
+      uint32_t rows = weight.rows();
+      uint32_t cols = weight.cols();
+      parameters.write(reinterpret_cast<const char*>(&rows), sizeof(rows));
+      parameters.write(reinterpret_cast<const char*>(&cols), sizeof(cols));
+      // Write the weights data from the matrix
+      parameters.write(reinterpret_cast<const char*>(weight.data()),
+                       rows * cols * sizeof(Eigen::MatrixXd::Scalar));
+    }
+
+    // Go through layers writing bias
+    for (const auto& b : bias) {
+      // Write rows and cols
+      uint32_t rows = b.rows();
+      uint32_t cols = b.cols();
+      parameters.write(reinterpret_cast<const char*>(&rows), sizeof(rows));
+      parameters.write(reinterpret_cast<const char*>(&cols), sizeof(cols));
+      // Write the weights data from the matrix
+      parameters.write(reinterpret_cast<const char*>(b.data()),
+                       rows * cols * sizeof(Eigen::VectorXd::Scalar));
+    }
+
+    parameters.close();
+  } else {
+    std::cerr << "Unable to open file" << std::endl;
+  }
+}
+
+void SimpleNN::load_parameters(const std::string& path) {
+  std::ifstream parameters(path, std::ios::in | std::ios::binary);
+  if (!parameters.is_open()) {
+    std::cerr << "Error: Could not open file " << path << " for reading."
+              << std::endl;
+  }
+
+  // Check the Magic number
+  uint32_t header;
+  parameters.read(reinterpret_cast<char*>(&header), sizeof(header));
+
+  if (header != param_data) {
+    std::cerr << "Invalid parameter header!" << std::endl;
+    return;
+  }
+
+  // Read the number of layers
+  uint32_t layers;
+  parameters.read(reinterpret_cast<char*>(&layers), sizeof(layers));
+  std::cout << layers << " layers" << std::endl;
+
+  // Go through layers reading weights
+  for (size_t layer = 0; layer < layers; layer++) {
+    // read rows and cols
+    uint32_t rows;
+    uint32_t cols;
+    parameters.read(reinterpret_cast<char*>(&rows), sizeof(rows));
+    parameters.read(reinterpret_cast<char*>(&cols), sizeof(cols));
+    // Read the weights data
+    Eigen::MatrixXd weight(rows, cols);
+    parameters.read(reinterpret_cast<char*>(weight.data()),
+                    rows * cols * sizeof(Eigen::MatrixXd::Scalar));
+
+    std::cout << "Loaded weight: " << weight.rows() << "x" << weight.cols()
+              << std::endl;
+    ;
+    weights.push_back(weight);
+  }
+
+  // Go through layers read bias
+  for (size_t layer = 0; layer < layers; layer++) {
+    // Write rows and cols
+    uint32_t rows;
+    uint32_t cols;
+    parameters.read(reinterpret_cast<char*>(&rows), sizeof(rows));
+    parameters.read(reinterpret_cast<char*>(&cols), sizeof(cols));
+    // Read the bias data
+    Eigen::VectorXd b(rows, cols);
+    parameters.read(reinterpret_cast<char*>(b.data()),
+                    rows * cols * sizeof(Eigen::VectorXd::Scalar));
+    bias.push_back(b);
+  }
+
+#ifdef DEBUG
+  for (auto weight : weights) {
+    std::cout << "Weights dimensions: " << weight.rows() << " and "
+              << weight.cols() << std::endl;
+  }
+  for (auto layer_bias : bias) {
+    std::cout << "Bias dimensions: " << layer_bias.rows() << " and "
+              << layer_bias.cols() << std::endl;
+  }
+#endif
+  parameters.close();
 }
