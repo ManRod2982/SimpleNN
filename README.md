@@ -2,19 +2,77 @@
 
 Simple neural network implementation example on C++. The main example creates a Neural Network and trains it on the MNIST data set to detect hand written digits.
 
-## Usage
+## Build
 
-To build this project:
+To build this project with debugging output:
 ```
 mkdir build
-cmake -B build
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
+./build/simple_nn
 ```
-To run the tests:
+The build provides more logs. Otherwise can simply do:
+```
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/simple_nn
+```
+
+Note that the release build is **way** faster compared to the debug build when it comes to execution and training.
+
+To run the tests after building (not a lot of tests right now):
 ```
 cd build
 ctest
 ```
+## Usage
+
+To use the SimpleNN two constructors are available, once to start from scratch defining the architecture of the network by providing a vector with the number of neurons in each layer, the following is a full example on how to create and train a network:
+```
+  // Input layer of 784 neurons
+  // hidden layer of 30 neurons
+  // 10 neurons in the output layer
+  std::vector<int> arch{784, 30, 10};
+  SimpleNN nn(arch);
+  // Set function to validate data
+  // Pass lambda
+  nn.set_validation_function(
+      [](Eigen::VectorXd output, Eigen::VectorXd label) -> bool {
+        // Get the index of the maximum element in the result from the NN
+        auto max_it_out = std::max_element(output.begin(), output.end());
+        auto output_number = std::distance(output.begin(), max_it_out);
+
+        // Get the index of the max element in the label, to find the label
+        auto max_it_lab = std::max_element(label.begin(), label.end());
+        auto label_number = std::distance(label.begin(), max_it_lab);
+
+        return label_number == output_number;
+      });
+  // Set training parameters
+  // 30 epochs, 3.0 learning rate, mini batch size of 10 and 10000 images for validation
+  nn.set_config(30, 3.0, 10, 10000);
+  nn.train(data.images, data.labels);
+  nn.save_parameters("training_30_3-0_10_deep");
+  auto result = nn.forward_propagation(data.images[0]);
+```
+- A network is created
+- A lambda function is provided to the network to validate it's output against the labeled data, not required for training but it helps visualize the progress
+- Hyperparameters are set
+- Training starts
+- Once training finished the weights and biases and saved in a binary file to be reused if required
+- A forward pass is made and the result it's saved.
+
+If the parameters of a trained network are already provided then one can create the network as follows:
+
+```
+  // Load parameters from file
+  SimpleNN nn("training_1_3-0_10");
+  auto result = nn.forward_propagation(data.images[0]);
+
+```
+The parameters can be loaded and the forward pass can be set right away with the pre-trained bias and weights.
+
+main.cc contains the full example used by loading the MNIST data set for training and validation.
 
 ## Dependencies
 
@@ -44,7 +102,7 @@ Pixels are organized row-wise. Pixel values are 0 to 255. 0 means background (wh
 
 Data was obtained [here](https://www.kaggle.com/datasets/hojjatk/mnist-dataset) and copied into `data` folder
 
-And MNIST parser was created to read the data from binary into C++ std::vectors.
+And MNIST parser was created to read the data from binary into C++ std::vectors of Eigen::VectorXd.
 
 ## Notes
 
@@ -81,6 +139,58 @@ And for stochastic gradient descent with mini-batches we want to update our para
 $w \to w'= w -\frac{\eta}{m}\sum_{m}\frac{\partial{C}}{\partial{w}}$
 
 $b \to b'= b -\frac{\eta}{m}\sum_{m}\frac{\partial{C}}{\partial{b}}$
+
+It is easier to calculate $\frac{\partial{C}}{\partial{w}}$ and $\frac{\partial{C}}{\partial{b}}$ by looking at the computation graph since it is then just a matter of following the derivative backwards and 'chain' them togeter or multiply them together.
+
+```mermaid
+graph LR;
+A[w]-->D[Z]
+B[x]-->D
+C[b]-->D
+D-->E[activation function]
+E-->F[Cost function]
+F-->G[Output]
+```
+By following the diagram above one can calculate the following in reverse order:
+- $\frac{\partial{C}}{\partial{a}}$ The derivative of the cost function with respect $a$ or the output of the activation function
+- $\frac{\partial{a}}{\partial{z}}$ The derivative of the activation function $\sigma(z)$ wrt $z$
+- Finally one can compute $\frac{\partial{z}}{\partial{w}}$ and $\frac{\partial{z}}{\partial{b}}$
+
+And chaining them together gives:
+
+$\frac{\partial{C}}{\partial{w}} = \frac{\partial{z}}{\partial{w}}\frac{\partial{a}}{\partial{z}}\frac{\partial{C}}{\partial{a}} $
+
+$\frac{\partial{C}}{\partial{b}} = \frac{\partial{z}}{\partial{b}}\frac{\partial{a}}{\partial{z}}\frac{\partial{C}}{\partial{a}}$
+
+And we know
+
+$C(w,b) = \dfrac{1}{2}\|y(x)-a\|^2$
+
+Where the derivative is:
+
+$\frac{\partial{C}}{\partial{a}} = y(x)-a$
+
+Then for $\frac{\partial{a}}{\partial{z}}$ we know in our case the activation function is the sigmoid
+
+$a(z) = \sigma(z) = \frac{1}{1-e^{-z}}$
+
+$\frac{\partial{a}}{\partial{z}} = \sigma'(z) = \sigma(z)(1-\sigma(z))$
+
+Lastly
+
+$z = wx + b$
+
+Where $x$ is either the input or the output from the last layer activation.
+
+$\frac{\partial{z}}{\partial{w}} = x$ and $\frac{\partial{z}}{\partial{b}} = 1$
+
+Putting it altogether we now have a way to compute the gradient with respect to each weight and bias in the network:
+
+$\frac{\partial{C}}{\partial{w}} = \frac{\partial{z}}{\partial{w}}\frac{\partial{a}}{\partial{z}}\frac{\partial{C}}{\partial{a}}= x\sigma'(z)(y(x)-a)$
+
+$\frac{\partial{C}}{\partial{b}} = \frac{\partial{z}}{\partial{b}}\frac{\partial{a}}{\partial{z}}\frac{\partial{C}}{\partial{a}}=\sigma'(z)(y(x)-a)$
+
+Note that $y(x)-a$ is only applicable to the last layer for previous layers we take in the previous $\delta$ and propagate it back instead.
 
 ## References
 
