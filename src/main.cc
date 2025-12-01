@@ -28,6 +28,13 @@ SOFTWARE.
 #include "mnist_reader.hh"
 #include "simple_nn.hh"
 
+// Helper function used to get the index of the
+// maximum value in a VectorXd
+int get_max_index(Eigen::VectorXd vec) {
+  auto max_iter = std::max_element(vec.begin(), vec.end());
+  return std::distance(vec.begin(), max_iter);
+}
+
 int main() {
   // Read MNIST data and create a SimpleNN instance
   auto data = mnist_reader("data/train-images.idx3-ubyte",
@@ -37,7 +44,8 @@ int main() {
   // 30 Hidden layer
   // 10 Ouput layer
   std::cout << "Creating SimpleNN\n" << std::endl;
-  SimpleNN nn({784, 30, 10});
+  std::vector<int> arch{784, 30, 10};
+  SimpleNN nn(arch);
   // Set function to validate data
   // Pass lambda
   nn.set_validation_function(
@@ -57,18 +65,20 @@ int main() {
   // validation
   nn.set_config(30, 3.0, 10, 10000);
 
+  nn.train(data.images, data.labels);
+  std::cout << "Saving parameters" << std::endl;
+  nn.save_parameters("training_30_3-0_10");
+  auto result = nn.forward_propagation(data.images[0]);
+  std::cout << "Result: " << get_max_index(result) << std::endl;
+  std::cout << "Target: " << get_max_index(data.labels[0]) << std::endl;
+
 #ifdef DEBUG
   // Visualize the first image to verify it was parsed correctly
   std::cout << "First training image (28x28 MNIST digit):\n";
   visualize_image(data.images[0], 28, 2);
   std::cout << "\n";
 #endif
-  nn.train(data.images, data.labels);
-  auto result = nn.forward_propagation(data.images[0]);
-  std::cout << "Result: " << std::endl;
-  std::cout << std::fixed << std::setprecision(2) << result << std::endl;
-  std::cout << "Target: " << std::endl;
-  std::cout << data.labels[0] << std::endl;
+
   // Use against validation data
   auto validation = mnist_reader("data/t10k-images.idx3-ubyte",
                                  "data/t10k-labels.idx1-ubyte");
